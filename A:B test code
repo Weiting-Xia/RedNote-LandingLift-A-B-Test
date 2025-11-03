@@ -1,0 +1,1254 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 68,
+   "id": "878e7cc7",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "papermill": {
+     "duration": 2.971971,
+     "end_time": "2023-09-28T10:01:23.932334",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:20.960363",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import scipy.stats as stats\n",
+    "import statsmodels.stats.api as sms\n",
+    "import matplotlib as mpl\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "56a70553",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009811,
+     "end_time": "2023-09-28T10:01:23.952513",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:23.942702",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 1. Data Overview\n",
+    "An e-commerce company places great emphasis on its landing page design and aims to improve conversion rates through design enhancements. Based on historical data, the previous conversion rate was around **12%**, and the company hopes that the new design can achieve a **3%** increase, reaching **15%**. Before officially launching the new page, the company intends to conduct an A/B test on a small group of users to ensure that the desired improvement can be achieved."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "id": "7cefd291",
+   "metadata": {
+    "papermill": {
+     "duration": 0.65958,
+     "end_time": "2023-09-28T10:01:24.622060",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:23.962480",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>user_id</th>\n",
+       "      <th>timestamp</th>\n",
+       "      <th>group</th>\n",
+       "      <th>landing_page</th>\n",
+       "      <th>converted</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>851104</td>\n",
+       "      <td>2025-01-21 22:11:48.556739</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>804228</td>\n",
+       "      <td>2025-01-12 08:01:45.159739</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>661590</td>\n",
+       "      <td>2025-01-11 16:55:06.154213</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>853541</td>\n",
+       "      <td>2025-01-08 18:28:03.143765</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>864975</td>\n",
+       "      <td>2025-01-21 01:52:26.210827</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   user_id                   timestamp      group landing_page  converted\n",
+       "0   851104  2025-01-21 22:11:48.556739    control     old_page          0\n",
+       "1   804228  2025-01-12 08:01:45.159739    control     old_page          0\n",
+       "2   661590  2025-01-11 16:55:06.154213  treatment     new_page          0\n",
+       "3   853541  2025-01-08 18:28:03.143765  treatment     new_page          0\n",
+       "4   864975  2025-01-21 01:52:26.210827    control     old_page          1"
+      ]
+     },
+     "execution_count": 64,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Input user data\n",
+    "df = pd.read_csv('ab_data.csv')\n",
+    "df.head(5)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "96c3de74",
+   "metadata": {
+    "papermill": {
+     "duration": 0.010256,
+     "end_time": "2023-09-28T10:01:24.791294",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:24.781038",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "* `user_id`: User ID\n",
+    "* `timestamp`: The time when the user visited the page\n",
+    "* `group`: User group assignment [treatment - new; control - old]\n",
+    "* `landing_page`: The page assigned to the user, corresponding one-to-one with the `group` field\n",
+    "* `converted`: Whether the user successfully converted"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "id": "7fc44870",
+   "metadata": {
+    "papermill": {
+     "duration": 0.137829,
+     "end_time": "2023-09-28T10:01:24.770387",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:24.632558",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 294478 entries, 0 to 294477\n",
+      "Data columns (total 5 columns):\n",
+      " #   Column        Non-Null Count   Dtype \n",
+      "---  ------        --------------   ----- \n",
+      " 0   user_id       294478 non-null  int64 \n",
+      " 1   timestamp     294478 non-null  object\n",
+      " 2   group         294478 non-null  object\n",
+      " 3   landing_page  294478 non-null  object\n",
+      " 4   converted     294478 non-null  int64 \n",
+      "dtypes: int64(2), object(3)\n",
+      "memory usage: 11.2+ MB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f52bba27",
+   "metadata": {
+    "papermill": {
+     "duration": 0.010393,
+     "end_time": "2023-09-28T10:01:24.891441",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:24.881048",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 2. Data Cleaning\n",
+    "## 2.1 Handle missing and duplicate values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 67,
+   "id": "13e46897",
+   "metadata": {
+    "papermill": {
+     "duration": 0.115871,
+     "end_time": "2023-09-28T10:01:25.017798",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:24.901927",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "user_id         0\n",
+       "timestamp       0\n",
+       "group           0\n",
+       "landing_page    0\n",
+       "converted       0\n",
+       "dtype: int64"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Check for missing values\n",
+    "display(df.isnull().sum())\n",
+    "# Check for duplicate values\n",
+    "print(df.duplicated().sum())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "id": "99d065a8",
+   "metadata": {
+    "papermill": {
+     "duration": 0.036587,
+     "end_time": "2023-09-28T10:01:25.324162",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:25.287575",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>user_id</th>\n",
+       "      <th>timestamp</th>\n",
+       "      <th>group</th>\n",
+       "      <th>landing_page</th>\n",
+       "      <th>converted</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>851104</td>\n",
+       "      <td>2025-01-21 22:11:48.556739</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>804228</td>\n",
+       "      <td>2025-01-12 08:01:45.159739</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>661590</td>\n",
+       "      <td>2025-01-11 16:55:06.154213</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>853541</td>\n",
+       "      <td>2025-01-08 18:28:03.143765</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>864975</td>\n",
+       "      <td>2025-01-21 01:52:26.210827</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>294473</th>\n",
+       "      <td>751197</td>\n",
+       "      <td>2025-01-03 22:28:38.630509</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>294474</th>\n",
+       "      <td>945152</td>\n",
+       "      <td>2025-01-12 00:51:57.078372</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>294475</th>\n",
+       "      <td>734608</td>\n",
+       "      <td>2025-01-22 11:45:03.439544</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>294476</th>\n",
+       "      <td>697314</td>\n",
+       "      <td>2025-01-15 01:20:28.957438</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>294477</th>\n",
+       "      <td>715931</td>\n",
+       "      <td>2025-01-16 12:40:24.467417</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>286690 rows × 5 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        user_id                   timestamp      group landing_page  converted\n",
+       "0        851104  2025-01-21 22:11:48.556739    control     old_page          0\n",
+       "1        804228  2025-01-12 08:01:45.159739    control     old_page          0\n",
+       "2        661590  2025-01-11 16:55:06.154213  treatment     new_page          0\n",
+       "3        853541  2025-01-08 18:28:03.143765  treatment     new_page          0\n",
+       "4        864975  2025-01-21 01:52:26.210827    control     old_page          1\n",
+       "...         ...                         ...        ...          ...        ...\n",
+       "294473   751197  2025-01-03 22:28:38.630509    control     old_page          0\n",
+       "294474   945152  2025-01-12 00:51:57.078372    control     old_page          0\n",
+       "294475   734608  2025-01-22 11:45:03.439544    control     old_page          0\n",
+       "294476   697314  2025-01-15 01:20:28.957438    control     old_page          0\n",
+       "294477   715931  2025-01-16 12:40:24.467417  treatment     new_page          0\n",
+       "\n",
+       "[286690 rows x 5 columns]"
+      ]
+     },
+     "execution_count": 86,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Find duplicate user data\n",
+    "df[df['user_id'].duplicated()]['user_id']  # the first column is index, and the second column is id\n",
+    "# Save the user_id for all duplicate ids\n",
+    "del_id = df[df['user_id'].duplicated()]['user_id'].values\n",
+    "# Select those are not duplicate ids\n",
+    "df_new = df[~df['user_id'].isin(del_id)]\n",
+    "df_new"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c12d1abd",
+   "metadata": {
+    "papermill": {
+     "duration": 0.012164,
+     "end_time": "2023-09-28T10:01:25.506858",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:25.494694",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 2.2 Standardize the date format"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 130,
+   "id": "1e11c089",
+   "metadata": {
+    "papermill": {
+     "duration": 0.164154,
+     "end_time": "2023-09-28T10:01:25.683545",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:25.519391",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th>landing_page</th>\n",
+       "      <th>new_page</th>\n",
+       "      <th>old_page</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>group</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>control</th>\n",
+       "      <td>0</td>\n",
+       "      <td>143293</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>treatment</th>\n",
+       "      <td>143397</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "landing_page  new_page  old_page\n",
+       "group                           \n",
+       "control              0    143293\n",
+       "treatment       143397         0"
+      ]
+     },
+     "execution_count": 130,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Set the datetime format\n",
+    "df_new.loc[:, 'timestamp'] = pd.to_datetime(df_new['timestamp'], format='%Y-%m-%d')\n",
+    "# Check and confirm that the values of group and landing_page correspond one-to-one\n",
+    "pd.crosstab(df_new['group'], df_new['landing_page'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a4bcc5eb",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01301,
+     "end_time": "2023-09-28T10:01:26.625899",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:26.612889",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 3. Design an A/B test\n",
+    "## 3.1 Calculate Experimental Sample Size\n",
+    "According to the Law of Large Numbers and the Central Limit Theorem, a larger sample size increases the accuracy of our estimates. However, it also raises the cost. Therefore, it is important to determine the minimum required sample size within a controllable range and select a reasonable one.\n",
+    "Each experiment’s required sample size can be calculated using the following formula:\n",
+    "$$\n",
+    "N = \\frac{\\sigma^2}{\\delta^2} (Z_{1 - \\frac{\\alpha}{2}} + Z_{1 - \\beta})^2\n",
+    "$$\n",
+    "\n",
+    "Where:  \n",
+    "- **α** — probability of a *Type I error* (false positive)  \n",
+    "- **β** — probability of a *Type II error* (false negative)  \n",
+    "- **σ** — standard deviation of the sample data  \n",
+    "- **δ** — expected difference between the experimental and control groups  \n",
+    "\n",
+    "In this case, we set:  \n",
+    "- **Significance level**: **α** = 0.05, meaning we have **95% confidence** that the new landing page’s conversion rate is higher than the old one before rejecting the null hypothesis.  \n",
+    "- **Statistical power**: 1 - **β** = 0.8 i.e. **β** = 0.2, meaning there is an **80% chance** of detecting a true effect if it exists.\n",
+    "\n",
+    "When the measured metric is a **proportion-type indicator**, the variance can be calculated as:\n",
+    "\n",
+    "$$\n",
+    "\\sigma^2 = P_A (1 - P_A) + P_B (1 - P_B)\n",
+    "$$"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 143,
+   "id": "cd983b09-e970-4eed-90a3-54ae9c1cf36a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>conversion_rate</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>group</th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>control</th>\n",
+       "      <td>0.120173</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>treatment</th>\n",
+       "      <td>0.118726</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "           conversion_rate\n",
+       "group                     \n",
+       "control           0.120173\n",
+       "treatment         0.118726"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "conversion_rates= df_new.groupby('group')['converted'].agg(['mean'])\n",
+    "conversion_rates.columns = ['conversion_rate'] \n",
+    "display(conversion_rates)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b934adac-6e2a-457d-a93f-9f01d6e67cc3",
+   "metadata": {},
+   "source": [
+    "Where:  \n",
+    "- \\( P_A \\) and \\( P_B \\) are the observed conversion rates for the **control group** and the **experimental group**, respectively.  \n",
+    "\n",
+    "In this case:  \n",
+    "$$\n",
+    "P_A = 12\\%, \\quad P_B = 15\\%\n",
+    "$$\n",
+    "\n",
+    "Thus, the **minimum sample size per group** can be determined using the above formula.\n",
+    "$$\n",
+    "N = \\frac{\\sigma^2}{\\delta^2} (Z_{1 - \\frac{\\alpha}{2}} + Z_{1 - \\beta})^2\n",
+    "$$"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 146,
+   "id": "cab8c311-0e23-4f07-887a-6e3552d801cf",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "np.float64(2031.0)"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "effect_size=sms.proportion_effectsize(0.12,0.15)\n",
+    "sample_size=sms.NormalIndPower().solve_power(\n",
+    "    effect_size,\n",
+    "    power=0.8,\n",
+    "    alpha=0.05,\n",
+    "    ratio=1\n",
+    ")\n",
+    "np.ceil(sample_size)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "57e692e2-6147-4624-b3d9-136402987874",
+   "metadata": {},
+   "source": [
+    "Thus, the **minimum sample size per group** is 2031. Thus the total sample size is 2*2031=4,062 "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c5233b6e-ffd8-43a5-9947-129684cf4a98",
+   "metadata": {},
+   "source": [
+    "## 3.2 Calculate Test Duration\n",
+    "Based on the minimum sample size, we need all the users to conduct the test. To determine the test duration, We assume the website’s average number of visits is 1000. The minimum duration of the experiment is 5 days."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 147,
+   "id": "ce6e749f-6a36-443b-8086-b0f2f4374818",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "4.062"
+      ]
+     },
+     "execution_count": 147,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test_duration=4062/1000\n",
+    "test_duration"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ebe3aea6-5a8b-4874-9d23-c7cacff548a9",
+   "metadata": {},
+   "source": [
+    "# 4. Conduct the Experiment\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 139,
+   "id": "8d399e3e",
+   "metadata": {
+    "papermill": {
+     "duration": 0.180038,
+     "end_time": "2023-09-28T10:01:26.819080",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:26.639042",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>user_id</th>\n",
+       "      <th>timestamp</th>\n",
+       "      <th>group</th>\n",
+       "      <th>landing_page</th>\n",
+       "      <th>converted</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>763854</td>\n",
+       "      <td>2025-01-21</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>690555</td>\n",
+       "      <td>2025-01-18</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>861520</td>\n",
+       "      <td>2025-01-06</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>630778</td>\n",
+       "      <td>2025-01-05</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>656634</td>\n",
+       "      <td>2025-01-04</td>\n",
+       "      <td>control</td>\n",
+       "      <td>old_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4057</th>\n",
+       "      <td>832235</td>\n",
+       "      <td>2025-01-24</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4058</th>\n",
+       "      <td>711752</td>\n",
+       "      <td>2025-01-04</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4059</th>\n",
+       "      <td>664876</td>\n",
+       "      <td>2025-01-15</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4060</th>\n",
+       "      <td>933209</td>\n",
+       "      <td>2025-01-12</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4061</th>\n",
+       "      <td>861027</td>\n",
+       "      <td>2025-01-09</td>\n",
+       "      <td>treatment</td>\n",
+       "      <td>new_page</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>4062 rows × 5 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      user_id  timestamp      group landing_page  converted\n",
+       "0      763854 2025-01-21    control     old_page          0\n",
+       "1      690555 2025-01-18    control     old_page          0\n",
+       "2      861520 2025-01-06    control     old_page          0\n",
+       "3      630778 2025-01-05    control     old_page          0\n",
+       "4      656634 2025-01-04    control     old_page          0\n",
+       "...       ...        ...        ...          ...        ...\n",
+       "4057   832235 2025-01-24  treatment     new_page          0\n",
+       "4058   711752 2025-01-04  treatment     new_page          0\n",
+       "4059   664876 2025-01-15  treatment     new_page          1\n",
+       "4060   933209 2025-01-12  treatment     new_page          0\n",
+       "4061   861027 2025-01-09  treatment     new_page          1\n",
+       "\n",
+       "[4062 rows x 5 columns]"
+      ]
+     },
+     "execution_count": 139,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Randomly select 2031 sample from each group\n",
+    "required_n = 2031\n",
+    "control_sample = df_new[df_new['group'] == 'control'].sample(n=required_n, random_state=22)\n",
+    "treatment_sample = df_new[df_new['group'] == 'treatment'].sample(n=required_n, random_state=22)\n",
+    "\n",
+    "# Vertically concatenate the two datasets\n",
+    "ab_test = pd.concat([control_sample, treatment_sample], axis=0)\n",
+    "ab_test.reset_index(drop=True, inplace=True)\n",
+    "ab_test"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 140,
+   "id": "1d605340",
+   "metadata": {
+    "papermill": {
+     "duration": 0.041067,
+     "end_time": "2023-09-28T10:01:26.873634",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:26.832567",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th>landing_page</th>\n",
+       "      <th>new_page</th>\n",
+       "      <th>old_page</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>group</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>control</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2031</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>treatment</th>\n",
+       "      <td>2031</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "landing_page  new_page  old_page\n",
+       "group                           \n",
+       "control              0      2031\n",
+       "treatment         2031         0"
+      ]
+     },
+     "execution_count": 140,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Check and confirm that the values of group and landing_page correspond one-to-one\n",
+    "pd.crosstab(ab_test['group'], ab_test['landing_page'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 141,
+   "id": "6118b6d1",
+   "metadata": {
+    "papermill": {
+     "duration": 0.037878,
+     "end_time": "2023-09-28T10:01:26.952434",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:26.914556",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>conversion_rate</th>\n",
+       "      <th>std_deviation</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>group</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>control</th>\n",
+       "      <td>0.122600</td>\n",
+       "      <td>0.328058</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>treatment</th>\n",
+       "      <td>0.117676</td>\n",
+       "      <td>0.322303</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "           conversion_rate  std_deviation\n",
+       "group                                    \n",
+       "control           0.122600       0.328058\n",
+       "treatment         0.117676       0.322303"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "image/png": "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PZqcnBwqKioACAsLY/DgwWzdupXW1lYAkpKS8PPzY8+ePY6+MjIyKCsro7CwENDxpONJx5OOp749nnpjmRNNE19SSUkJKSkplJeX4+XlhTGGuLg4PvnkE2w2W5fl169fz1133cXnn3/uaHvttdd44okn+PDDDwGor68nKCiI5uZmPD09e9x+QkKC4+AVERER99Db9/dpv+QUHR3NmDFjWL16NQBr167FZrN1G2aO58orr6SgoMCR6P/+978zcuTIXsOMiIiInJ365ZLTihUrmDNnDkuWLCE4OJjnn38egHnz5jF16lSmTp1KU1MTycnJNDU1UV1dTUJCAjfffDO/+MUvCAgI4Omnn+bqq6/GGENoaGi3v4YSERGRr4bTfsmpv+mSk4iIiPs54y45iYiIiJxqCjQiIiLi9hRoRERExO0p0IiIiIjbU6ARERERt6dAIyIiIm5PgUZERETcngKNiIiIuD0FGhEREXF7CjQiIiLi9hRoRERExO0p0IiIiIjbU6ARERERt6dAIyIiIm5PgUZERETcngKNiIiIuD0FGhEREXF7CjQiIiLi9hRoRERExO0p0IiIiIjbU6ARERERt6dAIyIiIm5PgUZERETcngKNiIiIuD0FGhEREXF7CjQiIiLi9hRoRERExO0p0IiIiIjbU6ARERERt6dAIyIiIm5PgUZERETcngKNiIiIuD0FGhEREXF7CjQiIiLi9hRoRERExO31S6DJyspi8uTJpKamMnHiRHbu3NllmZycHC688EJCQkIYP358t/0YY7j44ouJjIzs65JFRETkDNYvgWbBggXMnz+fvXv3cvfddzN37twuywQHB/PII4+wZs2a4/bz1FNPYbPZ+rBSERERcQenPdCUlJSwceNGZs6cCcD06dPJzs4mJyfHabnw8HDOO+88AgICuu0nKyuLl19+mXvuuaevSxYREZEznNfp3mBeXh7x8fF4edk3bVkWiYmJ5Obmuny2pb29nVtvvZXly5fj7e3d47LLli1j2bJljumamho2btwIQEBAAGlpaezZs4e6ujoA4uLiiIyMZNu2bY510tLSaGxs5ODBgwB4eXkxatQosrOzqaysBOwBzGazsWXLFtra2gCw2Wz4+Piwd+9eR1+jR4+muLiYoqIipxp27dpFQ0MDAPHx8YSHh7N9+3bHeunp6dTX15ObmwuAt7c3GRkZ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k+JyoFm1alUfliEiIiJy8jRSsIiIiLi9Ewo0+/fv5+abbyY+Ph5fX18GDhzI7Nmz2b9/f1/VJyIiItIrly857d69m0mTJtHY2MhFF11EfHw8hw4d4tVXX+Wtt97io48+Ij09vS9rFREREemWy4HmZz/7GREREaxfv56EhARHe35+PhdddBH33Xcfa9eu7ZMiRURERHri8iWn//znPyxevNgpzAAkJCTwwAMP8MEHH5zy4kRERERc4XKgqa+vJyIiott5kZGRNDQ0nLKiRERERE6Ey4EmLS2NP//5z93Oe+mll3T/jIiIiPQbl++hufPOO5k3bx7V1dXMnj2buLg4CgsLWb16NevWreO5557ryzpFREREjsvlQPP//t//o7i4mEceeYS3334bAGMM/v7+PProo9xyyy19VqSIiIhIT1wONAD33nsvt912Gx9//DHl5eVEREQwadIkQkJC+qo+ERERkV6dUKABCAkJ4YorruiLWkREREROSo+BJjc3l7i4OLy9vcnNze21s8TExFNWmIiIiIiregw0gwcP5uOPP2bixInYbLZen7bd1tZ2SosTERERcUWPgeaPf/wjycnJjv/fW6ARERER6Q89BprZs2c7/v+cOXP6uhYRERGRk3JCT9s+VmNjI7t379alJhEREelXLgeaJ598kocfftgx/cUXXzBo0CBGjBhBamoqeXl5fVKgiIiISG9cDjTPPfccoaGhjumf/vSnhIeH85vf/AZjDI888khf1CciIiLSK5fHocnNzXU8r+nw4cN8+OGHvPzyy1x//fWEhYXxwAMP9FmRIiIiIj1x+QxNU1MT3t7eAHz88ce0t7dzySWXAGCz2SgqKuqbCkVERER64XKgSUxM5P/+7/8A+Otf/0pmZibBwcEAlJaWOv6/K7Kyspg8eTKpqalMnDiRnTt3drvcypUrSUlJITk5mfnz59Pa2uqY9+tf/5qRI0eSmZnJ1772NT777DOXty8iIiJnF5cDzcyZM3nooYcYN24cK1asYObMmY55n3/+OampqS5vdMGCBcyfP5+9e/dy9913M3fu3C7LZGdnc//997Nhwwb27dtHUVERK1euBGDLli08+eSTfPLJJ2zevJk77riD22+/3eXti4iIyNnF5UBz33338fDDDzNw4EAWLVrEnXfe6Zi3fft2pk+f7lI/JSUlbNy40RGIpk+fTnZ2Njk5OU7Lvfbaa0ybNo2YmBgsy2LhwoW89NJLjvktLS3U1dUBUFVVRUJCgqsvRURERM4yLt0U3NzczPr16/n2t7/NPffc02X+unXrXN5gXl4e8fHxeHnZN21ZFomJieTm5mKz2RzL5ebmkpSU5Ji22WyO50mNHj2aH/3oRwwePJjw8HB8fX358MMPXa5BREREzi4uBRovLy+uueYa3n333VPyAMpjH6FgjOl1uaOXOXjwIOvWrWP//v3ExcXx1FNP8Z3vfIf169d36WPZsmUsW7bMMV1TU8PGjRsBCAgIIC0tjT179jjO9sTFxREZGcm2bdsc66SlpdHY2MjBgwcB+/4YNWoU2dnZVFZWAhAeHo7NZmPLli2Yjn1UVgZtbRAT01lQXh4EB0NIiH26qQmruBgTGws+Pva2qiqoq4OBAzvXKyy0z4+IsE+3tWEVFGAiI2HAAHtbbS1WRQUmIQE8jpx8Ky2F9vauNYSE2OsAaGzEKilxrqGyEurru9bg6wvh4fbp1lasQ4cwUVHg729vO3wYq7ISM2gQdLx/paVgDERHd/aVmwthYRAUZJ9uaMAqLcXExcGRm8+pqIDGRoiP71zv0CHw8+usoaUFq7CwSw1UVsLRn9WSEns9UVH2aWOw8vIw3dUQHw9HAjcVFdDUBHFxnX0VFNj3eViYfbq5GauoCBMdba8NoKYGqqth0KDO9YqL7e9LRw3t7Vj5+ZjwcAgMtLfV12OVlWEGDgRPT3tbeTk0N3etISAAOoZS6KghJsb+HoF9+zU1XWvw9ITISOcaIiLs/QHU1WGVl3etoaUFYmM7+8rPt++7Yz/Lx9Zw+DAkJDiOuxM9njoG7rTZbPj4+LB3715HCaNHj6a4uNjxo4SOY3rXrl00NDQAEB8fT3h4ONu3b3esl56eTn19veOPJG9vbzIyMjhw4ABVVVUAREREkJSUxObNm2lvbwfsz7drajaUVXXuhvgoqKmD2nr7tK8PRIZalFQYWo7c9hccCP6+UFzeuV50ODS3QNVh+7SnJ8RGWJRXGxqb7G0B/hAaZFFQ0vnvX0QIYEH5sTXUQm2Dcw3F5YbWI+OehgSCnw8UV3SuFxMOjc1QXWuf9vKEmAiLsipDU7O9LdDfXv+h0s71IkIBA+XVnW0Doy2qDhvqjtTg5wsRIRZF5YaOsVdDg8DHG0qOriECGprs9QN4e0F0+DE1DIDgAOcaIkOh3UDFkRosC+KjLCprDPWN9jZ/XwgPsSgqM7S1H7+G2Aiob7S/j0fXUFppaG6xtwUNsNdRWOZcQ1s7VNbYpz0siDu2Bj8ID7YoLDMc+RgRFmzf16WVR9UQCXUNcPhIDT7eEBV2TA0B9s9E0VE1RIVBa9tRNXhAXKRFRY2h4UgNA/wgLNiisNTQbjpr8PTA6bMcF2n/HB+ud67B6bMcYO+v6JjPcllZ2UkdT15eXmRlZTn6yszMpLCwkOLiYgACAwNJTU097r22R7PM8dLEMYYMGcLSpUuZNm2aK4sfV0lJCSkpKZSXl+Pl5YUxhri4OD755BOnMzS/+tWvyMnJYfny5QC88847PP7446xfv55f//rXHDhwgKeffhqAuro6goKCaGlpwbPjH+DjSEhIID8//0u9ht6sW7y4T/sXcUdTH3ywv0s4JbK2uX5GWuSrIiVjap9vo7fvb5fvoZk7dy7Lly//0o85iI6OZsyYMaxevRqAtWvXYrPZnMIM2O+teeONNyguLsYYwzPPPMOMGTMAe7jasGEDtbX2SP+3v/2NYcOG9RpmRERE5Ozk8sB6Pj4+7Nmzh2HDhjF16lTi4uKcLglZlsUPf/hDl/pasWIFc+bMYcmSJQQHB/P8888DMG/ePKZOncrUqVMZMmQIixcv5txzz6W9vZ2LLrrI8WuoadOm8dlnnzF+/Hh8fX0JCgpyBCQRERH56nH5kpOHR88ncyzLcouHVOqSk0j/0CUnkbPXmXDJyeUzNNnZ2aekIBEREZFTzeVAc/RPqEVERETOJC4Hmg67d+/mP//5D2VlZcydO5fY2FgOHTpEWFgY/h0/mxURERE5jVwONG1tbcyfP59Vq1ZhjMGyLK688kpiY2NZsGABY8aM4aGHHurLWkVERES65fLPth999FHWrFnDr371K7Zv3+400N2VV17J3//+9z4pUERERKQ3Lp+hWbVqFffffz8/+tGPuvyaafDgwbppWERERPqNy2doCgoKmDRpUrfz/Pz8OHz48CkrSkREROREuBxooqOjOXDgQLfz9uzZo6ddi4iISL9xOdBcddVVPProoxQUFDjaLMuiurqaJ554gmuvvbZPChQRERHpjcuB5qGHHqK1tZXhw4czffp0LMviZz/7GSNHjqSxsZH777+/L+sUEREROS6XA01MTAyfffYZ3/rWt/jiiy/w9PRky5YtXHnllfz3v/8lPDy8L+sUEREROa4TGlgvJiaGZ555pq9qERERETkpLp+heeqpp6isrOzLWkREREROisuB5s477yQ+Pp6bbrqJf/zjH7j4kG4RERGRPudyoNm1axd33nknH330EVdddRWDBg3ivvvuIysrqy/rExEREemVy4EmLS2NX/7yl+Tm5vK3v/2NyZMns2zZMtLT0zn//PP505/+1Jd1ioiIiByXy4HGsYKHB1dddRWvvvoqhYWFPPnkkxw8eJBbb721L+oTERER6dUJB5oONTU1vPrqq7z44ovk5+fj5+d3KusSERERcdkJB5r33nuPmTNnEhcXx8KFCwFYsWIFhYWFp7w4EREREVe4PA7Ngw8+yPPPP09eXh4xMTHccccd3HLLLaSnp/dlfSIiIiK9cjnQPPbYY1xzzTU89dRTXHnllXh6evZlXSIiIiIucznQFBQUEBkZ2Ze1iIiIiJwUl++hUZgRERGRM9UJPctp9erVrFmzhoMHD9LQ0OA0z7Is9u/ff0qLExEREXGFy4Hml7/8Jffeey/Dhw9n9OjR+Pr69mVdIiIiIi5zOdA8++yz3H777Tz55JN9WY+IiIjICXP5HpqioiKmTZvWl7WIiIiInBSXA824ceN0j4yIiIickVwONMuWLWPp0qV88cUXfVmPiIiIyAlz+R6aW265hfLyciZOnEhsbCwRERFO8y3LYsuWLae8QBEREZHeuBxoIiIiNBaNiIiInJFcDjTr16/vwzJERERETt4JP21bRERE5ExzQiMFV1RU8Jvf/Ib33nuP8vJyIiMjueSSS/jBD35AWFhYX9UoIiIi0iOXz9AUFBQwduxYHn30Uaqrq0lMTKSqqoqHH36YsWPHcujQob6sU0REROS4XA40P/vZz2hoaODTTz9lx44d/Otf/2LHjh18+umnNDQ08LOf/czljWZlZTF58mRSU1OZOHEiO3fu7Ha5lStXkpKSQnJyMvPnz6e1tdUxLzc3l2uvvZa0tDTS09M1grGIiMhXmMuB5u9//zuPPPIIEyZMcGqfMGECDz30EO+++67LG12wYAHz589n79693H333cydO7fLMtnZ2dx///1s2LCBffv2UVRUxMqVKwEwxjBt2jRmzZrFnj172LVrFzfccIPL2xcREZGzi8uBprq6GpvN1u28wYMHU11d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5z9P6zbly1GgkbPe4sWLj/sP7NEPPBWRL+94x9uXOdYUaMQVCjRyRvr44485//zzGT16NKNGjeKvf/0rn3/+OZMmTWLUqFFMnDiRjz76CLAPrBgZGckDDzzAuHHjGDp0KO+88w4ACxcuBGDy5MlkZmZSUlLCnDlzuPPOO7niiisYPXo0AI8//jgjRowgIyOD73znO1RXV/fPCxdxY8ceb1dddVWXY+3FF1/knHPOYezYsVxwwQVs374dgG3btnH++eczduxYhg8fzi9+8QsA3nnnHdatW8djjz1GZmYmzz33HOvXryczM5OFCxeSkZHB2LFj2b59OzfddBPDhw/n0ksvpba2FoCWlhbuueceJk6cSGZmJjNmzKCqqgqAOXPmcNttt3HJJZeQmprK9ddfT3NzM5s3b+aZZ57hhRdeIDMzk4ceeug070k5KUbkDFNeXm5iYmLMRx99ZIwxpq2tzRQXF5tBgwaZv//978YYY/7v//7PxMbGmtraWpOdnW0A8+abbxpjjHn33XdNamqqoz/AHD582DE9e/ZsM2bMGEfbO++8Y9LT001lZaUxxphbb73V3HbbbcYYYx588EHz4x//uM9fs8jZ4ujj7dhjbcOGDeaqq64yjY2NxhhjPvzwQzNq1ChjjDE1NTWO9vr6epOZmWk+++wzRz9PPvmkYxsffPCB8fLyMps2bTLGGHPbbbeZgQMHmry8PGOMMVdeeaVZsWKFMcaYRx991Dz88MOOdR966CFz5513OvqdNGmSqa+vN62trWby5MlmzZo1xhgd++6oX57lJNKTjz/+mOHDhzN58mQAPDw8KC4uxsfHh8svvxyA8847j+joaLZu3UpcXBwBAQFcd911AEyaNIn9+/f3uI0bb7zR8QyYf//733znO98hNDQUgO9+97saeVrkFDn6WPvrX//Kli1bOOeccxzzS0tLaW5upqGhgdtuu43Nmzfj4eFBXl4emzdvZvz48d32m5aWRmZmJgBjx47l4MGDjuf0jRs3jgMHDgD2y1U1NTW89tprADQ3N5OcnOzo5/rrr8ff3x+AiRMn9vpvh5y5FGjELRhjun0gaUebn5+fo83T05O2trYe+zv6gXbd9e3qw09FpGfHHmv/7//9v24v4fzsZz8jJiaGTZs24eXlxfXXX09jY+Nx+z32mD92uqGhwbHNp59+mosuusilfnRf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",
+      "text/plain": [
+       "<Figure size 640x480 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# Calculate convertion rate & std\n",
+    "c_r = ab_test.groupby('group')['converted'].agg(['mean', 'std'])\n",
+    "c_r.columns = ['conversion_rate', 'std_deviation'] \n",
+    "display(c_r)\n",
+    "plt.figure(figsize=(8,6), dpi=80)\n",
+    "sns.barplot(\n",
+    "    x=ab_test['group'],\n",
+    "    y=ab_test['converted'],\n",
+    "    hue=ab_test['group'],  \n",
+    "    errorbar=('ci', False),\n",
+    "    palette=\"pink\",\n",
+    "    dodge=False,\n",
+    "    legend=False)\n",
+    "plt.ylim(0, 0.17)\n",
+    "plt.title('Group Conversion Rate', fontsize=20)\n",
+    "plt.xlabel('Group', fontsize=15)\n",
+    "plt.ylabel('Conversion Rate', fontsize=15)\n",
+    "plt.grid(axis='y', linestyle='--', alpha=0.7)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "79701a50",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014866,
+     "end_time": "2023-09-28T10:01:27.662672",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:27.647806",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "We want to determine whether the observed **0.5%** decrease is statistically significant. To do this, we conduct a **hypothesis test**. The null hypothesis that there is **no real difference** between the two groups, and the alternative hypothesis that there **is** a true difference. By calculating a p-value, we can assess whether the 0.5% improvement is likely due to random chance or represents a meaningful effect.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 148,
+   "id": "c7e97c1f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.034927,
+     "end_time": "2023-09-28T10:01:27.751412",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:27.716485",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[np.int64(2031), np.int64(2031)]"
+      ]
+     },
+     "execution_count": 148,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from statsmodels.stats.proportion import proportions_ztest, proportion_confint\n",
+    "# Extract conversion results\n",
+    "c_results = ab_test[ab_test['group'] == 'control']['converted']\n",
+    "t_results = ab_test[ab_test['group'] == 'treatment']['converted']\n",
+    "\n",
+    "# Calculate the total experiment numbers\n",
+    "n_c = c_results.count()\n",
+    "n_t = t_results.count()\n",
+    "# Calculate the number of successful convertion\n",
+    "successes = [c_results.sum(), t_results.sum()]\n",
+    "nobs = [n_c, n_t]\n",
+    "nobs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 149,
+   "id": "6717aae9",
+   "metadata": {
+    "papermill": {
+     "duration": 0.029728,
+     "end_time": "2023-09-28T10:01:27.795891",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:27.766163",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "z_stat:0.48\n",
+      "p:0.63\n",
+      "95% for control:[0.108, 0.137]\n",
+      "95% for treatment:[0.104, 0.132]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Conduct Z-test\n",
+    "# Calculate the estimator and p-value\n",
+    "z_stat, pval = proportions_ztest(successes, nobs = nobs)\n",
+    "# We choose the 95% confidence interval(alpha=0.05)\n",
+    "(lower_c, lower_t), (upper_c, upper_t) = proportion_confint(successes, nobs = nobs, alpha=0.05)\n",
+    "print(f'z_stat:{z_stat:.2f}')\n",
+    "print(f'p:{pval:.2f}')\n",
+    "print(f'95% for control:[{lower_c:.3f}, {upper_c:.3f}]')\n",
+    "print(f'95% for treatment:[{lower_t:.3f}, {upper_t:.3f}]')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "df723e38-b8f6-4b4e-9ec6-200a2faeb774",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "id": "46dab27b",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014514,
+     "end_time": "2023-09-28T10:01:27.825357",
+     "exception": false,
+     "start_time": "2023-09-28T10:01:27.810843",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# 5. Results and Suggestion\n",
+    "Both the p-value and the confidence interval indicate that the new treatment plan is not significantly different(let alone better), and fails to meet the expected 15% conversion rate.\n",
+    "* The p-value = 0.63 >> significance level, therefore the null hypothesis cannot be rejected.\n",
+    "\n",
+    "Additionally, looking at the confidence interval, the **treatment group**’s interval is [0.104, 0.132], which indicates:\n",
+    "* It includes our baseline conversion rate of 12%.\n",
+    "* It does not include our target conversion rate of 15%.\n",
+    "\n",
+    "This also suggests that the true conversion rate of the new landing page may be similar to our baseline, and it is unlikely to reach our expected 15%. This further demonstrates that the new design is not a significant improvement."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:base] *",
+   "language": "python",
+   "name": "conda-base-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.5"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 12.502536,
+   "end_time": "2023-09-28T10:01:28.562831",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2023-09-28T10:01:16.060295",
+   "version": "2.4.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
