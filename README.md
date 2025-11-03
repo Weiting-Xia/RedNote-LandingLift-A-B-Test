@@ -24,7 +24,7 @@ Assuming the website’s average number of visits is **1,000 per day**, the mini
 * **Null hypothesis (H0):** There is no real difference between the two groups.
 * **Alternative hypothesis (H1):** There is a true difference between the two groups.
 
-A p-value was calculated to assess whether the observed change (0.5% decrease) was due to random chance or a meaningful effect.
+A p-value was calculated to assess whether the observed change (0.2% increase) was due to random chance or a meaningful effect.
 
 ## Results
 
