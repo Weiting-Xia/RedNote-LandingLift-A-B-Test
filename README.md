@@ -5,20 +5,19 @@ RedNote places great emphasis on its landing page design and aims to improve con
 
 ## 🖼️ Analysis Screenshots
 
-### 1) Data Overview
-<img src="images/1.Data%20Overview.png" width="900" />
+<p align="center">
+  <img src="images/1.Data%20Overview.png" width="48%" />
+  <img src="images/2.Data%20Cleaning.png" width="48%" />
+</p>
 
-### 2) Data Cleaning
-<img src="images/2.Data%20Cleaning.png" width="900" />
+<p align="center">
+  <img src="images/3.Design%20an%20A:B%20test.png" width="48%" />
+  <img src="images/4.Conduct%20the%20Experiment.png" width="48%" />
+</p>
 
-### 3) Design an A/B Test
-<img src="images/3.Design%20an%20A:B%20test.png" width="900" />
-
-### 4) Conduct the Experiment
-<img src="images/4.Conduct%20the%20Experiment.png" width="900" />
-
-### 5) Visualization
-<img src="images/5.%20Visualization.png" width="900" />
+<p align="center">
+  <img src="images/5.%20Visualization.png" width="48%" />
+</p>
 
 ## 🧪 II. Methodology
 ### 📊 Key Metrics
