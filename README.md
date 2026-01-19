@@ -1,8 +1,24 @@
 # RedNote Landing Lift A/B Test
-
 ## 🧭 I. Project Overview
 
 RedNote places great emphasis on its landing page design and aims to improve conversion rates through design enhancements. Based on historical data, the previous conversion rate was around **12%**, and the company hoped that the new design could achieve a **3% increase**, reaching **15%**. Before officially launching the new page, an A/B test was conducted on a small group of users to ensure that the desired improvement could be achieved.
+
+## 🖼️ Analysis Screenshots
+
+### 1) Data Overview
+<img src="images/1.Data%20Overview.png" width="900" />
+
+### 2) Data Cleaning
+<img src="images/2.Data%20Cleaning.png" width="900" />
+
+### 3) Design an A/B Test
+<img src="images/3.Design%20an%20A:B%20test.png" width="900" />
+
+### 4) Conduct the Experiment
+<img src="images/4.Conduct%20the%20Experiment.png" width="900" />
+
+### 5) Visualization
+<img src="images/5.%20Visualization.png" width="900" />
 
 ## 🧪 II. Methodology
 ### 📊 Key Metrics
